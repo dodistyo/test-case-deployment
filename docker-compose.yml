@@ -1,0 +1,104 @@
+services:
+  # Monitoring Section
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+  prometheus:
+    image: prom/prometheus
+    depends_on:
+      - cadvisor
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+  # Monitoring End Section
+  # Logging Section
+  fluent-bit:
+    image: fluent/fluent-bit:1.5
+    volumes:
+      - ./fluentbit:/fluent-bit/etc
+    links:
+      - "elasticsearch"
+    ports:
+      - 24224:24224
+      - 5140:5140/udp
+      - 2020:2020
+    logging:
+        driver: "json-file"
+        options:
+            max-size: 100m
+            max-file: "5"
+    networks:
+      - elastic
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.1
+    ports:
+      - "9200:9200"
+    networks:
+      - elastic
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.8.1
+    links:
+      - "elasticsearch"
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    networks:
+      - elastic
+  # Logging End Section
+  # Services Section
+  frontend:
+    image: sample-frontend:latest
+    ports:
+      - "80:80"
+    logging:
+      driver: fluentd
+      options:
+        tag: frontend
+
+  backend:
+    image: sample-backend:latest
+    ports:
+      - "8000:8000"
+    logging:
+      driver: fluentd
+      options:
+        tag: backend
+  # Service End Section
+volumes:
+  prometheus_data:
+  grafana_data:
+  elasticsearch_data:
+
+networks:
+  elastic:
+    driver: bridge
