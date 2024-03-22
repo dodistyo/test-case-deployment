@@ -15,4 +15,9 @@ echo \
 sudo apt-get update
 
 # Install Dependency
-sudo apt-get install git docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo apt-get install git docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin whois
+
+# Grant docker to user dodi
+sudo usermod -aG docker dodi
+
+git clone https://github.com/dodistyo/test-case-deployment.git /usr/share/app-deployment

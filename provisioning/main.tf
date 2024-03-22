@@ -33,9 +33,7 @@ resource "google_compute_instance" "default" {
   }
 
   # Install dependency
-  metadata = {
-    startup-script = file("${path.module}/script/dependency")
-  }
+  metadata_startup_script = file("${path.module}/script/dependency.sh")
 
   network_interface {
     subnetwork = google_compute_subnetwork.default.id
