@@ -67,7 +67,7 @@ services:
   # Logging End Section
   # Services Section
   frontend:
-    image: sample-frontend:${FRONTEND_IMAGE_TAG:-latest}
+    image: dodistyo/sample-frontend:${FRONTEND_IMAGE_TAG:-latest}
     ports:
       - "80:80"
     logging:
@@ -76,7 +76,7 @@ services:
         tag: frontend
 
   backend:
-    image: sample-backend:${BACKEND_IMAGE_TAG:-latest}
+    image: dodistyo/sample-backend:${BACKEND_IMAGE_TAG:-latest}
     ports:
       - "8000:8000"
     logging:
